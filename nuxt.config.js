@@ -34,7 +34,11 @@ export default {
   ],
 
   // Modules: https://go.nuxtjs.dev/config-modules
-  modules: [],
+  modules: ['@nuxtjs/strapi'],
+  strapi: {
+    entities: ['restaurants', 'categories'],
+    url: 'http://localhost:1337',
+  },
 
   // Vuetify module configuration: https://go.nuxtjs.dev/config-vuetify
   vuetify: {
