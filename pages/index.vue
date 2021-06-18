@@ -1,5 +1,5 @@
 <template>
-  <div v-if="isLogin || role">
+  <div v-if="role">
     <v-toolbar color="#41baf2">
       <v-toolbar-title>Książki</v-toolbar-title>
     </v-toolbar>
@@ -64,9 +64,9 @@
         <v-layout>
           <v-col class="mx-auto" cols="9">
             <v-text-field
-              v-model="login"
+              v-model="email"
               class="my-3"
-              label="Login"
+              label="Email"
               required
             ></v-text-field>
             <v-text-field
@@ -75,7 +75,9 @@
               label="Hasło"
               required
             ></v-text-field>
-            <v-btn class="my-3 formBtn" color="primary"> Zaloguj się </v-btn>
+            <v-btn class="my-3 formBtn" color="primary" @click="logIn">
+              Zaloguj się
+            </v-btn>
           </v-col>
         </v-layout>
       </v-form>
@@ -95,6 +97,8 @@
 </template>
 
 <script>
+import axios from 'axios'
+
 export default {
   data() {
     return {
@@ -102,8 +106,7 @@ export default {
       count: null,
       isBooksAvailable: false,
       searchBook: '',
-      isLogin: false,
-      login: null,
+      email: null,
       password: null,
       role: null,
     }
@@ -133,6 +136,21 @@ export default {
   methods: {
     setGuestRole() {
       this.role = 'guest'
+    },
+    logIn() {
+      axios
+        .post('http://localhost:1337/auth/local', {
+          identifier: this.email,
+          password: this.password,
+        })
+        .then((response) => {
+          // Handle success.
+          this.role = 'Admin'
+        })
+        .catch((error) => {
+          // Handle error.
+          console.log('An error occurred:', error.response)
+        })
     },
   },
 }
