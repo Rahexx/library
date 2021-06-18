@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-if="isLogin || role">
     <v-toolbar color="#41baf2">
       <v-toolbar-title>Książki</v-toolbar-title>
     </v-toolbar>
@@ -57,6 +57,41 @@
       </v-expansion-panel>
     </v-expansion-panels>
   </div>
+  <div v-else class="logForm">
+    <v-card class="mx-auto" outlined>
+      <h2 class="mt-6 text-center">Logowanie</h2>
+      <v-form class="my-6">
+        <v-layout>
+          <v-col class="mx-auto" cols="9">
+            <v-text-field
+              v-model="login"
+              class="my-3"
+              label="Login"
+              required
+            ></v-text-field>
+            <v-text-field
+              v-model="password"
+              class="my-3"
+              label="Hasło"
+              required
+            ></v-text-field>
+            <v-btn class="my-3 formBtn" color="primary"> Zaloguj się </v-btn>
+          </v-col>
+        </v-layout>
+      </v-form>
+      <p class="text-center">
+        Kontynuuj jako
+        <v-icon
+          large
+          color="primary"
+          class="arrowIcon ml-2"
+          @click="setGuestRole"
+        >
+          mdi-arrow-right
+        </v-icon>
+      </p>
+    </v-card>
+  </div>
 </template>
 
 <script>
@@ -67,6 +102,10 @@ export default {
       count: null,
       isBooksAvailable: false,
       searchBook: '',
+      isLogin: false,
+      login: null,
+      password: null,
+      role: null,
     }
   },
   watch: {
@@ -91,5 +130,30 @@ export default {
       console.error(error)
     }
   },
+  methods: {
+    setGuestRole() {
+      this.role = 'guest'
+    },
+  },
 }
 </script>
+
+<style scoped>
+.logForm {
+  width: 360px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.arrowIcon {
+  cursor: pointer;
+}
+
+.formBtn {
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+}
+</style>
