@@ -46,7 +46,7 @@
               <span> autor: {{ item.author }} </span>
             </v-col>
             <v-col cols="12" class="text--secondary my-2">
-              <span> kategoria: {{ item.category }} </span>
+              <span> kategoria: {{ item.categories }} </span>
             </v-col>
             <v-col cols="12" class="text--secondary my-2">
               <span>
@@ -62,7 +62,7 @@
                 <v-icon color="error" @click="deleteBook(item.id)">
                   mdi-cancel
                 </v-icon>
-                <v-icon color="warning" @click="editBook(index)"
+                <v-icon color="warning" @click="prepareEditForm(item)"
                   >mdi-clipboard-edit-outline</v-icon
                 >
               </span>
@@ -80,25 +80,34 @@
         <v-layout>
           <v-col class="mx-auto" cols="9">
             <v-text-field
+              v-model="editBook.bookName"
               class="my-3"
               label="Nazwa książki"
               required
             ></v-text-field>
             <v-text-field
+              v-model="editBook.categories"
               class="my-3"
               label="Kategoria"
               required
             ></v-text-field>
             <v-text-field
+              v-model="editBook.price"
               class="my-3"
               label="Cena"
               type="Number"
               step="0.01"
               required
             ></v-text-field>
-            <v-textarea label="Opis"></v-textarea>
-            <v-checkbox label="Dostępny w sklepie"></v-checkbox>
-            <v-btn class="my-3 formBtn" color="warning" @click="logIn">
+            <v-textarea
+              v-model="editBook.description"
+              label="Opis"
+            ></v-textarea>
+            <v-checkbox
+              v-model="editBook.available"
+              label="Dostępny w sklepie"
+            ></v-checkbox>
+            <v-btn class="my-3 formBtn" color="warning" @click="updateBook">
               Edytuj
             </v-btn>
           </v-col>
@@ -164,6 +173,7 @@ export default {
   data() {
     return {
       books: [],
+      editBook: null,
       count: null,
       isBooksAvailable: false,
       searchBook: '',
@@ -188,7 +198,7 @@ export default {
       this.count = matchArray.length
     },
   },
-  async mounted() {
+  async created() {
     try {
       this.books = await this.$strapi.$books.find()
       this.count = await this.$strapi.$books.count()
@@ -227,12 +237,25 @@ export default {
         this.error = error
       }
     },
-    editBook(id) {
-      console.log(id)
+    prepareEditForm(item) {
       this.isEdit = true
+      this.editBook = item
     },
     endEditBook() {
       this.isEdit = false
+    },
+    async updateBook() {
+      this.isEdit = false
+
+      await axios.put(
+        `http://localhost:1337/books/${this.editBook.id}`,
+        this.editBook,
+        {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
+        }
+      )
     },
   },
 }
