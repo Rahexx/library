@@ -54,12 +54,12 @@
               </span>
             </v-col>
             <v-col
+              v-if="role === 'admin'"
               cols="12"
               class="text--secondary my-2"
-              v-if="role === 'admin'"
             >
               <span>
-                <v-icon color="error" @click="deleteBook(index)">
+                <v-icon color="error" @click="deleteBook(item.id)">
                   mdi-cancel
                 </v-icon>
                 <v-icon color="warning" @click="editBook(index)"
@@ -74,7 +74,7 @@
         </v-expansion-panel-content>
       </v-expansion-panel>
     </v-expansion-panels>
-    <v-card class="mt-8 mx-auto" outlined v-if="isEdit">
+    <v-card v-if="isEdit" class="mt-8 mx-auto" outlined>
       <h2 class="mt-6 text-center">Edytowanie danych książki</h2>
       <v-form class="my-6">
         <v-layout>
@@ -171,6 +171,7 @@ export default {
       password: null,
       role: null,
       isEdit: false,
+      token: null,
     }
   },
   watch: {
@@ -208,14 +209,23 @@ export default {
         .then((response) => {
           // Handle success.
           this.role = 'admin'
+          this.token = response.data.jwt
         })
         .catch((error) => {
           // Handle error.
           console.log('An error occurred:', error.response)
         })
     },
-    deleteBook(id) {
-      console.log(id)
+    async deleteBook(bookId) {
+      try {
+        await axios.delete(`http://localhost:1337/books/${bookId}`, {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
+        })
+      } catch (error) {
+        this.error = error
+      }
     },
     editBook(id) {
       console.log(id)
