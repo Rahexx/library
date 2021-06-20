@@ -133,19 +133,21 @@
         <v-layout>
           <v-col class="mx-auto" cols="9">
             <v-text-field
-              v-model="email"
+              :value="email"
               class="my-3"
               label="Email"
               required
+              @input="setEmail"
             ></v-text-field>
             <v-text-field
-              v-model="password"
+              :value="password"
               class="my-3"
               label="Hasło"
               type="password"
               required
+              @input="setPassword"
             ></v-text-field>
-            <v-btn class="my-3 formBtn" color="primary" @click="logIn">
+            <v-btn class="my-3 formBtn" color="primary" @click="fetchUser">
               Zaloguj się
             </v-btn>
           </v-col>
@@ -168,20 +170,16 @@
 
 <script>
 import axios from 'axios'
+import { mapState, mapGetters, mapActions, mapMutations } from 'vuex'
 
 export default {
   data() {
     return {
-      books: [],
       editBook: null,
       count: null,
       isBooksAvailable: false,
       searchBook: '',
-      email: null,
-      password: null,
-      role: null,
       isEdit: false,
-      token: null,
     }
   },
   watch: {
@@ -199,32 +197,29 @@ export default {
     },
   },
   async created() {
-    try {
-      this.books = await this.$strapi.$books.find()
-      this.count = await this.$strapi.$books.count()
-    } catch (error) {
-      console.error(error)
-    }
+    await this.fetchBooks()
+    this.count = this.getBooks().length
   },
+  computed: mapState([
+    'books',
+    'role',
+    'token',
+    'password',
+    'email',
+    'password',
+  ]),
   methods: {
+    ...mapActions(['fetchBooks', 'fetchUser']),
+    ...mapMutations(['setEmail', 'setPassword', 'setRole']),
+    ...mapGetters([
+      'getBooks',
+      'getRole',
+      'getToken',
+      'getEmail',
+      'getPassword',
+    ]),
     setGuestRole() {
-      this.role = 'guest'
-    },
-    logIn() {
-      axios
-        .post('http://localhost:1337/auth/local', {
-          identifier: this.email,
-          password: this.password,
-        })
-        .then((response) => {
-          // Handle success.
-          this.role = 'admin'
-          this.token = response.data.jwt
-        })
-        .catch((error) => {
-          // Handle error.
-          console.log('An error occurred:', error.response)
-        })
+      this.setRole('guest')
     },
     async deleteBook(bookId) {
       try {
@@ -236,17 +231,17 @@ export default {
       } catch (error) {
         this.error = error
       }
+      await this.fetchBooks()
+      this.count = this.getBooks().length
     },
     prepareEditForm(item) {
       this.isEdit = true
-      this.editBook = item
+      this.editBook = JSON.parse(JSON.stringify(item))
     },
     endEditBook() {
       this.isEdit = false
     },
     async updateBook() {
-      this.isEdit = false
-
       await axios.put(
         `http://localhost:1337/books/${this.editBook.id}`,
         this.editBook,
@@ -256,6 +251,10 @@ export default {
           },
         }
       )
+
+      await this.fetchBooks()
+
+      this.isEdit = false
     },
   },
 }
