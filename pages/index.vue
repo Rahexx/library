@@ -2,8 +2,17 @@
   <div v-if="role">
     <v-toolbar color="#41baf2">
       <v-toolbar-title>Książki</v-toolbar-title>
+      <v-btn
+        v-if="role === 'admin' && !isAddingBook"
+        class="my-3 ml-6"
+        color="white"
+        small
+        @click="openAddBookForm"
+      >
+        Dodaj książkę
+      </v-btn>
     </v-toolbar>
-    <div v-if="!isEdit">
+    <div v-if="!isEdit && !isAddingBook">
       <v-form class="my-6">
         <v-container>
           <v-layout row>
@@ -25,56 +34,58 @@
       <h2>Lista książek</h2>
       <p>Wyszukane książki: {{ count }}</p>
     </div>
-    <v-expansion-panels v-for="(item, index) in books" :key="index">
-      <v-expansion-panel
-        v-if="
-          (isBooksAvailable === false &&
-            item.bookName.toLowerCase().includes(searchBook.toLowerCase()) &&
-            !isEdit) ||
-          (isBooksAvailable === true &&
-            item.available &&
-            item.bookName.toLowerCase().includes(searchBook.toLowerCase()) &&
-            !isEdit)
-        "
-      >
-        <v-expansion-panel-header cols="12" lg="8">
-          <v-row no-gutters>
-            <v-col cols="12">
-              {{ item.bookName }}
-            </v-col>
-            <v-col cols="12" class="text--secondary my-2">
-              <span> autor: {{ item.author }} </span>
-            </v-col>
-            <v-col cols="12" class="text--secondary my-2">
-              <span> kategoria: {{ item.categories }} </span>
-            </v-col>
-            <v-col cols="12" class="text--secondary my-2">
-              <span>
-                Dostępny w sklepie: {{ item.available ? 'Tak' : 'Nie' }}
-              </span>
-            </v-col>
-            <v-col
-              v-if="role === 'admin'"
-              cols="12"
-              class="text--secondary my-2"
-            >
-              <span>
-                <v-icon color="error" @click="deleteBook(item.id)">
-                  mdi-cancel
-                </v-icon>
-                <v-icon color="warning" @click="prepareEditForm(item)"
-                  >mdi-clipboard-edit-outline</v-icon
-                >
-              </span>
-            </v-col>
-          </v-row>
-        </v-expansion-panel-header>
-        <v-expansion-panel-content>
-          {{ item.description }}
-        </v-expansion-panel-content>
-      </v-expansion-panel>
-    </v-expansion-panels>
-    <v-card v-if="isEdit" class="mt-8 mx-auto" outlined>
+    <div v-if="!isAddingBook">
+      <v-expansion-panels v-for="(item, index) in books" :key="index">
+        <v-expansion-panel
+          v-if="
+            (isBooksAvailable === false &&
+              item.bookName.toLowerCase().includes(searchBook.toLowerCase()) &&
+              !isEdit) ||
+            (isBooksAvailable === true &&
+              item.available &&
+              item.bookName.toLowerCase().includes(searchBook.toLowerCase()) &&
+              !isEdit)
+          "
+        >
+          <v-expansion-panel-header cols="12" lg="8">
+            <v-row no-gutters>
+              <v-col cols="12">
+                {{ item.bookName }}
+              </v-col>
+              <v-col cols="12" class="text--secondary my-2">
+                <span> autor: {{ item.author }} </span>
+              </v-col>
+              <v-col cols="12" class="text--secondary my-2">
+                <span> kategoria: {{ item.categories }} </span>
+              </v-col>
+              <v-col cols="12" class="text--secondary my-2">
+                <span>
+                  Dostępny w sklepie: {{ item.available ? 'Tak' : 'Nie' }}
+                </span>
+              </v-col>
+              <v-col
+                v-if="role === 'admin'"
+                cols="12"
+                class="text--secondary my-2"
+              >
+                <span>
+                  <v-icon color="error" @click="deleteBook(item.id)">
+                    mdi-cancel
+                  </v-icon>
+                  <v-icon color="warning" @click="prepareEditForm(item)"
+                    >mdi-clipboard-edit-outline</v-icon
+                  >
+                </span>
+              </v-col>
+            </v-row>
+          </v-expansion-panel-header>
+          <v-expansion-panel-content>
+            {{ item.description }}
+          </v-expansion-panel-content>
+        </v-expansion-panel>
+      </v-expansion-panels>
+    </div>
+    <v-card v-if="isEdit && !isAddingBook" class="mt-8 mx-auto" outlined>
       <h2 class="mt-6 text-center">Edytowanie danych książki</h2>
       <v-form class="my-6">
         <v-layout>
@@ -120,6 +131,61 @@
           color="primary"
           class="arrowIcon ml-2"
           @click="endEditBook"
+        >
+          mdi-arrow-left
+        </v-icon>
+      </p>
+    </v-card>
+    <v-card v-if="isAddingBook" class="mt-8 mx-auto" outlined>
+      <h2 class="mt-6 text-center">Dodawanie nowej książki</h2>
+      <v-form class="my-6">
+        <v-layout>
+          <v-col class="mx-auto" cols="9">
+            <v-text-field
+              v-model="newBook.bookName"
+              class="my-3"
+              label="Nazwa książki"
+              required
+            ></v-text-field>
+            <v-text-field
+              v-model="newBook.author"
+              class="my-3"
+              label="Autor książki"
+              required
+            ></v-text-field>
+            <v-text-field
+              v-model="newBook.categories"
+              class="my-3"
+              label="Kategoria"
+              required
+            ></v-text-field>
+            <v-text-field
+              v-model="newBook.price"
+              class="my-3"
+              label="Cena"
+              type="Number"
+              step="0.01"
+              required
+            ></v-text-field>
+            <v-textarea v-model="newBook.description" label="Opis"></v-textarea>
+            <v-file-input show-size label="Zdjęcie książki"></v-file-input>
+            <v-checkbox
+              v-model="newBook.available"
+              label="Dostępny w sklepie"
+            ></v-checkbox>
+            <v-btn class="my-3 formBtn" color="primary" @click="updateBook">
+              Dodaj
+            </v-btn>
+          </v-col>
+        </v-layout>
+      </v-form>
+      <p class="text-center">
+        Wróć do listy książek
+        <v-icon
+          large
+          color="primary"
+          class="arrowIcon ml-2"
+          @click="endAddingBook"
         >
           mdi-arrow-left
         </v-icon>
@@ -186,6 +252,16 @@ export default {
       searchBook: '',
       isEdit: false,
       loadingLogForm: false,
+      isAddingBook: false,
+      newBook: {
+        bookName: null,
+        price: null,
+        image: null,
+        author: null,
+        available: false,
+        categories: null,
+        description: null,
+      },
     }
   },
   watch: {
@@ -262,13 +338,18 @@ export default {
 
       this.isEdit = false
     },
-
     async logIn() {
       this.loadingLogForm = true
 
       await this.fetchUser()
 
       this.loadingLogForm = false
+    },
+    endAddingBook() {
+      this.isAddingBook = false
+    },
+    openAddBookForm() {
+      this.isAddingBook = true
     },
   },
 }
