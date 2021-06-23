@@ -147,7 +147,12 @@
               required
               @input="setPassword"
             ></v-text-field>
-            <v-btn class="my-3 formBtn" color="primary" @click="fetchUser">
+            <v-btn
+              class="my-3 formBtn"
+              color="primary"
+              :loading="loadingLogForm"
+              @click="logIn"
+            >
               Zaloguj się
             </v-btn>
           </v-col>
@@ -180,6 +185,7 @@ export default {
       isBooksAvailable: false,
       searchBook: '',
       isEdit: false,
+      loadingLogForm: false,
     }
   },
   watch: {
@@ -255,6 +261,14 @@ export default {
       await this.fetchBooks()
 
       this.isEdit = false
+    },
+
+    async logIn() {
+      this.loadingLogForm = true
+
+      await this.fetchUser()
+
+      this.loadingLogForm = false
     },
   },
 }
