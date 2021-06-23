@@ -264,6 +264,14 @@ export default {
       },
     }
   },
+  computed: mapState([
+    'books',
+    'role',
+    'token',
+    'password',
+    'email',
+    'password',
+  ]),
   watch: {
     isBooksAvailable() {
       const matchArray = this.books.filter((item) => item.available === true)
@@ -282,14 +290,6 @@ export default {
     await this.fetchBooks()
     this.count = this.getBooks().length
   },
-  computed: mapState([
-    'books',
-    'role',
-    'token',
-    'password',
-    'email',
-    'password',
-  ]),
   methods: {
     ...mapActions(['fetchBooks', 'fetchUser']),
     ...mapMutations(['setEmail', 'setPassword', 'setRole']),
