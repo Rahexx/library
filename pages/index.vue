@@ -12,6 +12,9 @@
         Dodaj książkę
       </v-btn>
     </v-toolbar>
+    <v-alert v-if="successAddBook" class="my-3" dense :type="addBookStatus">
+      {{ addBookText }}
+    </v-alert>
     <div v-if="!isEdit && !isAddingBook">
       <v-form class="my-6">
         <v-container>
@@ -62,6 +65,9 @@
                 <span>
                   Dostępny w sklepie: {{ item.available ? 'Tak' : 'Nie' }}
                 </span>
+              </v-col>
+              <v-col cols="12" class="text--secondary my-2">
+                <span> Cena: {{ item.price }} zł</span>
               </v-col>
               <v-col
                 v-if="role === 'admin'"
@@ -168,12 +174,16 @@
               required
             ></v-text-field>
             <v-textarea v-model="newBook.description" label="Opis"></v-textarea>
-            <v-file-input show-size label="Zdjęcie książki"></v-file-input>
             <v-checkbox
               v-model="newBook.available"
               label="Dostępny w sklepie"
             ></v-checkbox>
-            <v-btn class="my-3 formBtn" color="primary" @click="updateBook">
+            <v-btn
+              class="my-3 formBtn"
+              color="primary"
+              :loading="loadingAddBookForm"
+              @click="sendNewBookServer"
+            >
               Dodaj
             </v-btn>
           </v-col>
@@ -252,16 +262,19 @@ export default {
       searchBook: '',
       isEdit: false,
       loadingLogForm: false,
+      loadingAddBookForm: false,
       isAddingBook: false,
       newBook: {
         bookName: null,
         price: null,
-        image: null,
         author: null,
         available: false,
         categories: null,
         description: null,
       },
+      successAddBook: false,
+      addBookStatus: null,
+      addBookText: null,
     }
   },
   computed: mapState([
@@ -350,6 +363,35 @@ export default {
     },
     openAddBookForm() {
       this.isAddingBook = true
+    },
+    async sendNewBookServer() {
+      this.loadingAddBookForm = true
+
+      await axios
+        .post('http://localhost:1337/books', this.newBook, {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
+        })
+        .then(() => {
+          this.addBookStatus = 'success'
+          this.addBookText = 'Książka została pomyślnie dodana'
+        })
+        .catch((error) => {
+          this.addBookStatus = 'error'
+          this.addBookText = `Błąd książka nie została dodana. Błąd: ${error}`
+        })
+
+      await this.fetchBooks()
+
+      this.loadingAddBookForm = true
+      this.isAddingBook = false
+      this.successAddBook = true
+
+      setTimeout(this.closeAddBookAlert, 3000)
+    },
+    closeAddBookAlert() {
+      this.successAddBook = false
     },
   },
 }
